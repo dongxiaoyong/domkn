@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弦长音律校准练习</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .string-container {
+            margin: 40px 0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .string-info {
+            min-width: 120px;
+            font-size: 16px;
+            color: #444;
+        }
+
+        .reference-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .reference-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+        }
+
+        .string-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-height: 40px;
+        }
+
+        .string {
+            height: 8px;
+            background: linear-gradient(90deg, #8B4513, #D2691E);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            max-width: 100%;
+        }
+
+        .string:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .string.playing {
+            animation: vibrate 0.3s ease-in-out;
+        }
+
+        @keyframes vibrate {
+            0%, 100% { transform: translateY(0); }
+            25% { transform: translateY(-2px); }
+            75% { transform: translateY(2px); }
+        }
+
+        .drag-handle {
+            position: absolute;
+            right: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 20px;
+            background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+            border-radius: 8px;
+            cursor: ew-resize;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drag-handle:hover {
+            transform: translateY(-50%) scale(1.2);
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.6);
+        }
+
+        .drag-handle::after {
+            content: '⋮⋮';
+            color: white;
+            font-size: 8px;
+            line-height: 1;
+            letter-spacing: -2px;
+        }
+
+        .length-display {
+            position: absolute;
+            right: 20px;
+            top: -25px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .dragging {
+            cursor: ew-resize;
+        }
+
+        .string.dragging {
+            box-shadow: 0 4px 16px rgba(255, 107, 107, 0.5);
+        }
+
+        .calibrate-btn {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E8E);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 30px auto;
+            display: block;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .calibrate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(255, 107, 107, 0.4);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            border-left: 5px solid #4CAF50;
+        }
+
+        .result-item {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .error {
+            color: #ff4444;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .middle-string {
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+        }
+
+        .top-string {
+            background: linear-gradient(90deg, #4169E1, #6495ED);
+        }
+
+        .bottom-string {
+            background: linear-gradient(90deg, #DC143C, #FF6347);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>弦长音律校准练习</h1>
+        
+        <!-- 上方弦长 (五度) -->
+        <div class="string-container">
+            <div class="string-info">
+                <strong>上方五度</strong>
+            </div>
+            <button class="reference-btn" onclick="playReference('top')">标准音</button>
+            <div class="string-wrapper">
+                <div class="string top-string" onclick="playString('top')" id="topStringVisual">
+                    <div class="drag-handle" id="topDragHandle"></div>
+                </div>
+                <div class="length-display" id="topDisplay">60</div>
+            </div>
+        </div>
+
+        <!-- 中间弦长 (宫音) -->
+        <div class="string-container">
+            <div class="string-info">
+                <strong>宫音 (基准)</strong><br>
+                <span>81</span>
+            </div>
+            <button class="reference-btn" onclick="playReference('middle')">标准音</button>
+            <div class="string-wrapper">
+                <div class="string middle-string" onclick="playString('middle')" id="middleStringVisual"></div>
+                <div style="height: 40px; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: #666; font-size: 14px;">基准弦长 (不可调)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 下方弦长 (四度) -->
+        <div class="string-container">
+            <div class="string-info">
+                <strong>下方四度</strong>
+            </div>
+            <button class="reference-btn" onclick="playReference('bottom')">标准音</button>
+            <div class="string-wrapper">
+                <div class="string bottom-string" onclick="playString('bottom')" id="bottomStringVisual">
+                    <div class="drag-handle" id="bottomDragHandle"></div>
+                </div>
+                <div class="length-display" id="bottomDisplay">110</div>
+            </div>
+        </div>
+
+        <!-- <button class="calibrate-btn" onclick="calibrate()">校准检查</button> -->
+
+        <div class="results hidden" id="results">
+            <h3>校准结果</h3>
+            <div class="result-item">
+                <span>上方五度弦长:</span>
+                <span id="topResult"></span>
+            </div>
+            <div class="result-item">
+                <span>下方四度弦长:</span>
+                <span id="bottomResult"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 音频上下文
+        let audioContext;
+        let currentOscillator = null;
+
+        // 初始化音频上下文
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioContext;
+        }
+
+        // 标准数据
+        const standardData = {
+            middle: { length: 81, frequency: 261.3 },
+            top: { length: 54, frequency: 392.0 },    // 五度 (261.3 * 1.5)
+            bottom: { length: 108, frequency: 195.98 } // 四度 (261.3 * 0.75)
+        };
+
+        // 当前弦长
+        let currentLengths = {
+            top: 60,
+            middle: 81,
+            bottom: 110
+        };
+
+        // 播放音调
+        function playTone(frequency, duration = 1000) {
+            const context = initAudioContext();
+            
+            if (currentOscillator) {
+                currentOscillator.stop();
+            }
+
+            const oscillator = context.createOscillator();
+            const gainNode = context.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(context.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, context.currentTime);
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0, context.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, context.currentTime + 0.1);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + duration / 1000);
+            
+            oscillator.start(context.currentTime);
+            oscillator.stop(context.currentTime + duration / 1000);
+            
+            currentOscillator = oscillator;
+        }
+
+        // 根据弦长计算频率 (反比关系)
+        function calculateFrequency(length) {
+            // 基准：弦长81对应261.3Hz
+            return (standardData.middle.frequency * standardData.middle.length) / length;
+        }
+
+        // 播放弦音
+        function playString(type) {
+            if (isDragging) return;
+            
+            const stringElement = document.querySelector(`.${type}-string`);
+            stringElement.classList.add('playing');
+            
+            let frequency;
+            if (type === 'middle') {
+                frequency = standardData.middle.frequency;
+            } else {
+                frequency = calculateFrequency(currentLengths[type]);
+            }
+            
+            playTone(frequency);
+            
+            setTimeout(() => {
+                stringElement.classList.remove('playing');
+            }, 300);
+        }
+
+        // 播放标准音
+        function playReference(type) {
+            playTone(standardData[type].frequency);
+        }
+
+        // 拖拽相关变量
+        let isDragging = false;
+        let dragType = null;
+        let dragStartX = 0;
+        let dragStartLength = 0;
+        let stringWrapperWidth = 0;
+
+        // 弦长范围限制
+        const lengthLimits = {
+            top: { min: 40, max: 70 },
+            bottom: { min: 90, max: 130 }
+        };
+
+        // 更新弦长
+        function updateString(type, value) {
+            // 限制在范围内
+            const limits = lengthLimits[type];
+            if (limits) {
+                value = Math.max(limits.min, Math.min(limits.max, value));
+            }
+            
+            currentLengths[type] = parseInt(value);
+            document.getElementById(type + 'Display').textContent = value;
+            
+            // 更新弦长的视觉长度比例
+            updateStringVisualLength();
+        }
+
+        // 初始化拖拽事件
+        function initDragEvents() {
+            const topHandle = document.getElementById('topDragHandle');
+            const bottomHandle = document.getElementById('bottomDragHandle');
+            
+            // 上方弦长拖拽
+            topHandle.addEventListener('mousedown', (e) => startDrag(e, 'top'));
+            topHandle.addEventListener('touchstart', (e) => startDrag(e, 'top'));
+            
+            // 下方弦长拖拽
+            bottomHandle.addEventListener('mousedown', (e) => startDrag(e, 'bottom'));
+            bottomHandle.addEventListener('touchstart', (e) => startDrag(e, 'bottom'));
+            
+            // 全局拖拽移动和结束事件
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchmove', handleDragMove);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        // 开始拖拽
+        function startDrag(e, type) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            isDragging = true;
+            dragType = type;
+            dragStartX = e.clientX || e.touches[0].clientX;
+            dragStartLength = currentLengths[type];
+            
+            // 获取弦长容器宽度
+            const stringWrapper = document.querySelector('.string-wrapper');
+            stringWrapperWidth = stringWrapper.offsetWidth;
+            
+            document.body.classList.add('dragging');
+            document.getElementById(type + 'StringVisual').classList.add('dragging');
+        }
+
+        // 拖拽移动
+        function handleDragMove(e) {
+            if (!isDragging || !dragType) return;
+            
+            e.preventDefault();
+            const currentX = e.clientX || e.touches[0].clientX;
+            const deltaX = currentX - dragStartX;
+            
+            // 计算长度变化 (每像素对应的长度变化)
+            const pixelToLength = (lengthLimits[dragType].max - lengthLimits[dragType].min) / (stringWrapperWidth * 0.6);
+            const deltaLength = deltaX * pixelToLength;
+            
+            const newLength = Math.round(dragStartLength + deltaLength);
+            updateString(dragType, newLength);
+        }
+
+        // 结束拖拽
+        function endDrag() {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            document.body.classList.remove('dragging');
+            
+            if (dragType) {
+                document.getElementById(dragType + 'StringVisual').classList.remove('dragging');
+                dragType = null;
+            }
+        }
+
+        // 播放弦音 (防止拖拽时误触)
+        function playString(type) {
+            if (isDragging) return;
+            
+            const stringElement = document.querySelector(`.${type}-string`);
+            stringElement.classList.add('playing');
+            
+            let frequency;
+            if (type === 'middle') {
+                frequency = standardData.middle.frequency;
+            } else {
+                frequency = calculateFrequency(currentLengths[type]);
+            }
+            
+            playTone(frequency);
+            
+            setTimeout(() => {
+                stringElement.classList.remove('playing');
+            }, 300);
+        }
+
+        // 更新弦长的视觉长度比例
+        function updateStringVisualLength() {
+            const baseLength = 81; // 基准弦长
+            
+            // 找到最长的弦长，确保不超过页面宽度
+            const maxLength = Math.max(currentLengths.top, currentLengths.middle, currentLengths.bottom);
+            const maxWidth = 85; // 最大宽度不超过85%，留出余量
+            
+            // 计算各弦长的视觉宽度比例
+            const topWidth = (currentLengths.top / maxLength) * maxWidth;
+            const middleWidth = (currentLengths.middle / maxLength) * maxWidth;
+            const bottomWidth = (currentLengths.bottom / maxLength) * maxWidth;
+            
+            // 应用视觉宽度
+            document.getElementById('topStringVisual').style.width = `${topWidth}%`;
+            document.getElementById('middleStringVisual').style.width = `${middleWidth}%`;
+            document.getElementById('bottomStringVisual').style.width = `${bottomWidth}%`;
+        }
+
+        // 校准检查
+        function calibrate() {
+            const results = document.getElementById('results');
+            const topResult = document.getElementById('topResult');
+            const bottomResult = document.getElementById('bottomResult');
+            
+            // 计算误差
+            const topError = currentLengths.top - standardData.top.length;
+            const bottomError = currentLengths.bottom - standardData.bottom.length;
+            
+            // 显示结果
+            topResult.innerHTML = `
+                <span>标准: ${standardData.top.length}</span>
+                <span>您的: ${currentLengths.top}</span>
+                <span class="${Math.abs(topError) <= 2 ? 'success' : 'error'}">
+                    误差: ${topError > 0 ? '+' : ''}${topError}
+                </span>
+            `;
+            
+            bottomResult.innerHTML = `
+                <span>标准: ${standardData.bottom.length}</span>
+                <span>您的: ${currentLengths.bottom}</span>
+                <span class="${Math.abs(bottomError) <= 2 ? 'success' : 'error'}">
+                    误差: ${bottomError > 0 ? '+' : ''}${bottomError}
+                </span>
+            `;
+            
+            results.classList.remove('hidden');
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化弦长
+            updateString('top', 60);
+            updateString('bottom', 110);
+            
+            // 初始化弦长视觉比例
+            updateStringVisualLength();
+            
+            // 初始化拖拽事件
+            initDragEvents();
+            
+            // 添加键盘快捷键
+            document.addEventListener('keydown', function(e) {
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    playString('middle');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弦长调音器 - 五度与四度音程探索</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+            background: linear-gradient(to right, #ff8a00, #da1b60, #ff8a00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            color: #ffcc66;
+        }
+        
+        .concept {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 25px 0;
+            border-left: 5px solid #ff8a00;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .concept p {
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        
+        .strings-container {
+            position: relative;
+            padding: 30px 0;
+            margin: 30px 0;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .string-container {
+            display: flex;
+            align-items: center;
+            margin: 40px 0;
+            position: relative;
+            padding: 0 20px;
+        }
+        
+        .string-label {
+            width: 150px;
+            font-weight: bold;
+            font-size: 1.3rem;
+            text-align: right;
+            padding-right: 20px;
+            text-shadow: 0 0 8px rgba(255, 138, 0, 0.7);
+        }
+        
+        .btn {
+            background: #ff8a00;
+            color: #000;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin-right: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(255, 138, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            background: #ffaa44;
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255, 138, 0, 0.9);
+        }
+        
+        .string-wrapper {
+            flex: 1;
+            position: relative;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 0 15px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .string {
+            height: 8px;
+            background: linear-gradient(to right, #8a2387, #f27121, #e94057);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            transition: all 0.3s;
+            min-width: 20px;
+        }
+        
+        .string:hover {
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.7);
+            height: 10px;
+        }
+        
+        .string::after {
+            content: '';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 25px;
+            height: 25px;
+            background: #ff8a00;
+            border-radius: 50%;
+            cursor: ew-resize;
+            box-shadow: 0 0 15px rgba(255, 138, 0, 0.9);
+            transition: all 0.2s;
+        }
+        
+        .string::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+        
+        .string:hover::after {
+            transform: translateY(-50%) scale(1.2);
+        }
+        
+        .string-value {
+            position: absolute;
+            top: -35px;
+            right: -15px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            border: 1px solid #ff8a00;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        #calibrate-btn, #reset-btn {
+            border: none;
+            padding: 16px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #calibrate-btn {
+            background: linear-gradient(to right, #00c853, #009624);
+            color: #fff;
+        }
+        
+        #calibrate-btn:hover {
+            background: linear-gradient(to right, #00e676, #00c853);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 200, 83, 0.6);
+        }
+        
+        #reset-btn {
+            background: linear-gradient(to right, #2979ff, #004ec4);
+            color: #fff;
+        }
+        
+        #reset-btn:hover {
+            background: linear-gradient(to right, #448aff, #2979ff);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(41, 121, 255, 0.6);
+        }
+        
+        .result {
+            margin-top: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            display: none;
+            border: 2px solid #ff8a00;
+            box-shadow: 0 0 25px rgba(255, 138, 0, 0.3);
+        }
+        
+        .result h2 {
+            margin-bottom: 25px;
+            color: #ffcc66;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(255, 204, 102, 0.5);
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-size: 1.3rem;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        
+        .result-item span:first-child {
+            color: #ffcc66;
+        }
+        
+        .result-item span:last-child {
+            font-weight: bold;
+            color: #ff8a00;
+        }
+        
+        .frequency-display {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 1.3rem;
+            font-style: italic;
+            color: #ffcc66;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ff8a00;
+        }
+        
+        .instructions {
+            margin-top: 40px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255, 138, 0, 0.5);
+        }
+        
+        .instructions h3 {
+            margin-bottom: 20px;
+            color: #ff8a00;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+        
+        .instructions ul {
+            padding-left: 30px;
+        }
+        
+        .instructions li {
+            margin: 15px 0;
+            line-height: 1.7;
+        }
+        
+        .decoration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.3;
+            z-index: 1;
+        }
+        
+        .note {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.7;
+            animation: float 8s infinite linear;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-1000px) rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .string-label {
+                width: 100px;
+                font-size: 1.1rem;
+                padding-right: 10px;
+            }
+            
+            .btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+                margin-right: 10px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            #calibrate-btn, #reset-btn {
+                width: 100%;
+            }
+            
+            .result-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="decoration" id="decoration"></div>
+        
+        <header>
+            <h1>弦长调音器</h1>
+            <div class="subtitle">探索上方五度与下方四度音程关系</div>
+        </header>
+        
+        <div class="concept">
+            <p>宫音（基准音）弦长固定为81，频率261.3Hz（中央C）。<br> 调整上方弦（五度音程）和下方弦（四度音程）的长度，感受音程关系。</p>
+        </div>
+        
+        <div class="strings-container">
+            <!-- 上方弦（五度音程） -->
+            <div class="string-container">
+                <div class="string-label">上方五度</div>
+                <button class="btn std-btn" data-frequency="391.95">♪</button>
+                <div class="string-wrapper">
+                    <div class="string" id="string-top" data-length="81">
+                        <div class="string-value">81</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 中间弦（宫音） -->
+            <div class="string-container">
+                <div class="string-label">宫音（基准）</div>
+                <button class="btn std-btn" data-frequency="261.3">♪</button>
+                <div class="string-wrapper">
+                    <div class="string" id="string-middle" data-length="81">
+                        <div class="string-value">81</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 下方弦（四度音程） -->
+            <div class="string-container">
+                <div class="string-label">下方四度</div>
+                <button class="btn std-btn" data-frequency="195.975">♪</button>
+                <div class="string-wrapper">
+                    <div class="string" id="string-bottom" data-length="81">
+                        <div class="string-value">81</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="frequency-display" id="frequency-display">点击弦或标准音按钮试听声音</div>
+        
+        <div class="controls">
+            <button id="calibrate-btn">校准检查</button>
+            <button id="reset-btn">重置弦长</button>
+        </div>
+        
+        <div class="result" id="result">
+            <h2>校准结果</h2>
+            <div class="result-item">
+                <span>上方五度弦长误差：</span>
+                <span id="top-error">0%</span>
+            </div>
+            <div class="result-item">
+                <span>下方四度弦长误差：</span>
+                <span id="bottom-error">0%</span>
+            </div>
+        </div>
+        
+        <!-- <div class="instructions">
+            <h3>使用说明：</h3>
+            <ul>
+                <li>宫音弦长占据页面宽度的50%，其他弦按比例显示</li>
+                <li>点击每条弦左侧的 ♪ 按钮可试听该弦的标准音</li>
+                <li>点击弦本身可试听当前弦长对应的音响</li>
+                <li>拖动弦右侧的橙色圆点可调整弦长</li>
+                <li>调整完成后点击"校准检查"查看误差</li>
+                <li>点击"重置弦长"恢复初始状态</li>
+            </ul>
+        </div> -->
+    </div>
+
+    <script>
+        // 音频上下文
+        let audioContext;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 创建装饰元素
+            createDecorations();
+            
+            // 初始化音频上下文
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                alert('您的浏览器不支持Web Audio API，部分功能可能无法使用');
+            }
+            
+            // 设置弦的初始宽度（宫音占50%）
+            setupStringWidths();
+            
+            // 设置弦的拖动功能
+            setupStringDrag('string-top');
+            setupStringDrag('string-bottom');
+            
+            // 为所有弦添加点击播放事件
+            document.querySelectorAll('.string').forEach(string => {
+                string.addEventListener('click', function() {
+                    const length = parseFloat(this.dataset.length);
+                    const baseFrequency = 261.3;
+                    const baseLength = 81;
+                    const frequency = baseFrequency * baseLength / length;
+                    playTone(frequency);
+                    
+                    // 显示当前频率
+                    document.getElementById('frequency-display').textContent = 
+                        `当前频率: ${frequency.toFixed(1)}Hz (弦长: ${Math.round(length)})`;
+                });
+            });
+            
+            // 标准音按钮事件
+            document.querySelectorAll('.std-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const frequency = parseFloat(this.dataset.frequency);
+                    playTone(frequency);
+                    
+                    // 显示当前频率
+                    document.getElementById('frequency-display').textContent = 
+                        `标准频率: ${frequency.toFixed(1)}Hz`;
+                });
+            });
+            
+            // 校准按钮事件
+            document.getElementById('calibrate-btn').addEventListener('click', function() {
+                return false;
+                const topString = document.getElementById('string-top');
+                const bottomString = document.getElementById('string-bottom');
+                
+                const topLength = parseFloat(topString.dataset.length);
+                const bottomLength = parseFloat(bottomString.dataset.length);
+                
+                // 计算误差百分比
+                const topError = Math.abs(((topLength - 54) / 54) * 100).toFixed(1);
+                const bottomError = Math.abs(((bottomLength - 108) / 108) * 100).toFixed(1);
+                
+                document.getElementById('top-error').textContent = `${topError}%`;
+                document.getElementById('bottom-error').textContent = `${bottomError}%`;
+                
+                // 显示结果
+                document.getElementById('result').style.display = 'block';
+                
+                // 播放校准提示音
+                playTone(523.25, 0.3);
+                setTimeout(() => playTone(659.25, 0.3), 300);
+                setTimeout(() => playTone(783.99, 0.5), 600);
+            });
+            
+            // 重置按钮事件
+            document.getElementById('reset-btn').addEventListener('click', function() {
+                // 重置弦长数据
+                document.getElementById('string-top').dataset.length = '81';
+                document.getElementById('string-bottom').dataset.length = '81';
+                
+                // 重新设置宽度
+                setupStringWidths();
+                
+                document.getElementById('result').style.display = 'none';
+                document.getElementById('frequency-display').textContent = '弦长已重置，请重新调整';
+                
+                // 播放重置提示音
+                playTone(392, 0.2);
+                setTimeout(() => playTone(261.3, 0.4), 200);
+                setTimeout(() => playTone(195.975, 0.4), 400);
+            });
+            
+            // 窗口大小改变时重新计算宽度
+            window.addEventListener('resize', setupStringWidths);
+        });
+        
+        // 设置弦的宽度（宫音占50%）
+        function setupStringWidths() {
+            const middleString = document.getElementById('string-middle');
+            const topString = document.getElementById('string-top');
+            const bottomString = document.getElementById('string-bottom');
+            
+            // 获取容器宽度
+            const wrapper = document.querySelector('.string-wrapper');
+            const wrapperWidth = wrapper.offsetWidth;
+            
+            // 设置宫音弦宽度（50%）
+            const middleWidth = wrapperWidth * 0.5;
+            middleString.style.width = middleWidth + 'px';
+            middleString.querySelector('.string-value').textContent = '81';
+            
+            // 计算比例系数
+            const ratio = 81 / middleWidth;
+            
+            // 设置上方弦宽度
+            const topLength = parseFloat(topString.dataset.length);
+            const topWidth = topLength / ratio;
+            topString.style.width = topWidth + 'px';
+            topString.querySelector('.string-value').textContent = Math.round(topLength);
+            
+            // 设置下方弦宽度
+            const bottomLength = parseFloat(bottomString.dataset.length);
+            const bottomWidth = bottomLength / ratio;
+            bottomString.style.width = bottomWidth + 'px';
+            bottomString.querySelector('.string-value').textContent = Math.round(bottomLength);
+        }
+        
+        // 设置弦的拖动功能
+        function setupStringDrag(stringId) {
+            const string = document.getElementById(stringId);
+            const knob = string;
+            let isDragging = false;
+            let startX, startWidth;
+            
+            knob.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                startX = e.clientX;
+                startWidth = parseInt(document.defaultView.getComputedStyle(string).width, 10);
+                e.preventDefault();
+                string.style.transition = 'none';
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - startX;
+                let newWidth = startWidth + deltaX;
+                
+                // 限制最小宽度
+                newWidth = Math.max(30, newWidth);
+                
+                // 设置新宽度
+                string.style.width = newWidth + 'px';
+                
+                // 更新弦长数据（根据宫音比例）
+                const middleString = document.getElementById('string-middle');
+                const middleWidth = parseInt(document.defaultView.getComputedStyle(middleString).width, 10);
+                const ratio = 81 / middleWidth;
+                const stringLength = newWidth * ratio;
+                
+                string.dataset.length = stringLength.toFixed(1);
+                string.querySelector('.string-value').textContent = Math.round(stringLength);
+            });
+            
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+                string.style.transition = 'all 0.3s';
+            });
+        }
+        
+        // 播放音频
+        function playTone(frequency, duration = 0.7) {
+            if (!audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = frequency;
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        // 创建装饰元素
+        function createDecorations() {
+            const decoration = document.getElementById('decoration');
+            const notes = ['♪', '♩', '♫', '♬', '♭', '♮', '♯'];
+            
+            for (let i = 0; i < 25; i++) {
+                const note = document.createElement('div');
+                note.className = 'note';
+                note.textContent = notes[Math.floor(Math.random() * notes.length)];
+                note.style.left = Math.random() * 100 + '%';
+                note.style.top = Math.random() * 100 + 100 + '%';
+                note.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+                note.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                note.style.animationDelay = Math.random() * 5 + 's';
+                decoration.appendChild(note);
+            }
+        }
+    </script>
+</body>
+</html>
